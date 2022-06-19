@@ -10,18 +10,18 @@ __all__ = [
     "extend_all",
 ]
 
-# (Base; Derived)
+# (Base class; Derived class)
 _known_derivatives: t.List[t.Tuple[type, t.Type[Extension]]] = []
 _extension_attr: str = "__extendable_replacement__"
 
 
 class BaseSuperExt:
-    """Common super_ext description"""
+    """Common super_ext property description"""
 
     _funcs: t.Dict[str, t.Callable]
 
     def __getattr__(self, item: str) -> t.Callable:
-        """Base unbound function getter"""
+        """Base class unbound function getter"""
         unbound_func: t.Optional[t.Callable] = self._funcs.get(item)
         if unbound_func is None:
             raise AttributeError(f"<super_ext>: {item}")
@@ -32,7 +32,7 @@ class BaseSuperExt:
 
 
 class ClassSuperExt(BaseSuperExt):
-    """Class-related super_ext description"""
+    """Class-related super_ext property description"""
 
     def __init__(self) -> None:
         self._funcs: t.Dict[str, t.Callable] = {}
@@ -48,7 +48,7 @@ class ClassSuperExt(BaseSuperExt):
 
 
 class InstanceSuperExt(BaseSuperExt):
-    """Instance-related super_ext description"""
+    """Instance-related super_ext property description"""
 
     def __init__(self, instance: t.Any, funcs: t.Dict[str, t.Callable]) -> None:
         self._instance = instance
