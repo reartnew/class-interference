@@ -1,9 +1,13 @@
+"""Core API"""
+
 from __future__ import annotations
 
 import typing as t
 
 __all__ = [
     "Extension",
+    "inject",
+    "extend_all",
 ]
 
 # (Base; Derived)
@@ -11,7 +15,9 @@ _known_derivatives: t.List[t.Tuple[type, t.Type[Extension]]] = []
 _extension_attr: str = "__extendable_replacement__"
 
 
-class BaseSuperExt(object):
+class BaseSuperExt:
+    """Common super_ext description"""
+
     _funcs: t.Dict[str, t.Callable]
 
     def __getattr__(self, item: str) -> t.Callable:
@@ -26,6 +32,7 @@ class BaseSuperExt(object):
 
 
 class ClassSuperExt(BaseSuperExt):
+    """Class-related super_ext description"""
 
     def __init__(self) -> None:
         self._funcs: t.Dict[str, t.Callable] = {}
@@ -40,7 +47,8 @@ class ClassSuperExt(BaseSuperExt):
 
 
 class InstanceSuperExt(BaseSuperExt):
-    # Instance method proxy object
+    """Instance-related super_ext description"""
+
     def __init__(self, instance: t.Any, funcs: t.Dict[str, t.Callable]) -> None:
         self._instance = instance
         self._funcs: t.Dict[str, t.Callable] = funcs
@@ -54,7 +62,7 @@ class InstanceSuperExt(BaseSuperExt):
         )
 
 
-class Extension(object):
+class Extension:
     """Monkey patch utility for library classes.
     Usage:
 
@@ -76,7 +84,8 @@ class Extension(object):
             library_class_instance = LibraryClass()
             library_class_instance.library_method()  # raises ValueError
 
-        """
+    """
+
     super_ext: ClassSuperExt
 
     def __init_subclass__(cls, **kwargs) -> None:
@@ -106,7 +115,7 @@ class Extension(object):
                 cls.super_ext[base_attr_value.__name__] = base_attr_value
 
 
-def __create_super_getattr(old_class, new_class):
+def _create_super_getattr(old_class, new_class):
     """Derivative closure. Make superclass able to access subclass' unique methods"""
     # Save previous __getattr__ implementation, if any
     _old_base_getattr = getattr(old_class, "__getattr__", None)
@@ -138,6 +147,7 @@ def _bind_unbound_func(*, unbound_func: t.Callable, bind_instance: t.Any, source
     if isinstance(maybe_derived_unbound_special_wrapper, (staticmethod, classmethod)):
         bound_func = unbound_func
     else:
+
         def bound_func(*args, **kwargs):
             return unbound_func(bind_instance, *args, **kwargs)
 
@@ -145,7 +155,7 @@ def _bind_unbound_func(*, unbound_func: t.Callable, bind_instance: t.Any, source
 
 
 def inject(func: t.Callable) -> t.Callable:
-    # Just mark using special attribute
+    """Mark function as extended"""
     setattr(func, _extension_attr, True)
     return func
 
@@ -159,4 +169,4 @@ def extend_all() -> None:
         for k in derivative_class.super_ext:
             setattr(base_class, k, getattr(derivative_class, k))
         # Patch __getattr__ to give access to new methods
-        setattr(base_class, "__getattr__", __create_super_getattr(base_class, derivative_class))
+        setattr(base_class, "__getattr__", _create_super_getattr(base_class, derivative_class))
