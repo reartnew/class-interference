@@ -38,7 +38,8 @@ class ClassSuperExt(BaseSuperExt):
         self._funcs: t.Dict[str, t.Callable] = {}
 
     def __setitem__(self, key: str, value: t.Callable) -> None:
-        assert key not in self._funcs, f"Name collision: {key}"
+        if key in self._funcs:
+            raise ValueError(f"Name collision: {key}")
         self._funcs[key] = value
 
     def __get__(self, instance, owner) -> BaseSuperExt:
@@ -63,35 +64,16 @@ class InstanceSuperExt(BaseSuperExt):
 
 
 class Extension:
-    """Monkey patch utility for library classes.
-    Usage:
-
-        class LibraryClass:
-            def library_method(self, *args, **kwargs):
-                return None
-
-        class LibraryClassExtension(LibraryClass, Extension):
-            @Extension.inject
-            def library_method(self, *args, **kwargs):
-                original_value = self.super_ext.library_method(*args, **kwargs)
-                if original_value is None:
-                    raise ValueError
-                return original_value
-
-        Extension.extend_all()
-
-        if __name__ == "__main__":
-            library_class_instance = LibraryClass()
-            library_class_instance.library_method()  # raises ValueError
-
-    """
+    """Monkey patch utility for library classes"""
 
     super_ext: ClassSuperExt
 
     def __init_subclass__(cls, **kwargs) -> None:
         super().__init_subclass__(**kwargs)
-        assert len(cls.__bases__) == 2
-        assert Extension in cls.__bases__
+        if len(cls.__bases__) != 2:
+            raise TypeError("Can't use Extension with few other base classes")
+        if Extension not in cls.__bases__:
+            raise TypeError("Extension classes shouldn't be extended")
         for base_class in cls.__bases__:  # type: type
             if Extension is not base_class:
                 non_extendable_base_class: type = base_class
