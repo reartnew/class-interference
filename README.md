@@ -11,7 +11,7 @@ pip install class-interference
 # Usage example
 
 ```python
-from class_interference import Extension, inject, extend_all
+from class_interference import Extension, inject, apply_extensions
 
 
 class LibraryClass:
@@ -28,7 +28,7 @@ class LibraryClassExtension(LibraryClass, Extension):
         return original_value
 
 
-extend_all()
+apply_extensions(LibraryClassExtension)
 
 if __name__ == "__main__":
     library_class_instance = LibraryClass()
