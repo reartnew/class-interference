@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import typing as t
+import warnings
 
 __all__ = [
     "Extension",
     "inject",
-    "extend_all",
+    "apply_extensions",
 ]
 
 # (Base class; Derived class)
@@ -142,9 +143,16 @@ def inject(func: t.Callable) -> t.Callable:
     return func
 
 
-def extend_all() -> None:
+def apply_extensions(*classes: t.Type[Extension]) -> None:
     """Apply patches for all registered classes"""
     for base_class, derivative_class in _known_derivatives:
+        if classes and derivative_class not in classes:
+            continue
+        # Check extension
+        if getattr(base_class, "__is_extended__", False):
+            continue
+        # Mark as extended
+        setattr(base_class, "__is_extended__", True)
         # Give base an accessor to original methods
         setattr(base_class, "super_ext", derivative_class.super_ext)
         # Replace overridden methods
@@ -152,3 +160,10 @@ def extend_all() -> None:
             setattr(base_class, k, getattr(derivative_class, k))
         # Patch __getattr__ to give access to new methods
         setattr(base_class, "__getattr__", _create_super_getattr(base_class, derivative_class))
+
+
+def extend_all() -> None:
+    """Deprecated version of non-parametrized `apply_extensions`"""
+    # TODO: remove in major
+    warnings.warn("`extend_all` is deprecated: user `apply_extensions` instead", DeprecationWarning, stacklevel=2)
+    apply_extensions()

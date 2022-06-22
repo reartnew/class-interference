@@ -1,7 +1,7 @@
 """Test class-interference Extension"""
 # pylint: disable=no-member,missing-function-docstring
 
-from class_interference import Extension, inject, extend_all
+from class_interference import Extension, inject, apply_extensions
 
 
 class PatchBase:
@@ -48,7 +48,7 @@ class PatchBaseExtension(PatchBase, Extension):
         return string[::-1]
 
 
-extend_all()
+apply_extensions(PatchBaseExtension)
 
 
 def test_instance_method_injection():

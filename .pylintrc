@@ -5,7 +5,8 @@ load-plugins=pylint_quotes
 unsafe-load-any-extension=no
 
 [MESSAGES CONTROL]
-disable=too-few-public-methods
+disable=too-few-public-methods,
+        fixme
 enable=unused-wildcard-import
 
 [REPORTS]
