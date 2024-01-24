@@ -84,7 +84,7 @@ class Extension:
         cls.super_ext = ClassSuperExt()
         _known_derivatives.append((non_extendable_base_class, cls))
         for derived_attr_name in dir(cls):
-            derived_attr_value = getattr(cls, derived_attr_name)
+            derived_attr_value = getattr(cls, derived_attr_name, None)
             # Avoid SuperExt objects to prevent getting stuck into their __getattr__ calls
             if isinstance(derived_attr_value, ClassSuperExt):
                 continue
